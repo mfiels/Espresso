@@ -69,9 +69,9 @@ define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'es
 			requestAnimationFrame(@_update)
 
 			# Dispatch buffered events
-			events = EventDispatcher.readEvents()
-			for event in events
-				@dispatchEvent(event, true)
+			eventInformation = EventDispatcher.readEvents()
+			for eventInfo in eventInformation
+				eventInfo.dispatcher.dispatchEvent(eventInfo.event, true)
 
 			# Dispatch an enterFrame event
 			now = new Date().getTime()

@@ -73,7 +73,6 @@
           this.y = 0;
           this.vy *= -1;
         }
-        this.setZIndex(Math.random());
         return this.rotation += 0.1;
       };
 

@@ -51,5 +51,9 @@ define ->
 							if event.cancel
 								break
 			else
-				EventDispatcher._bufferedEvents.push(event)
+				eventInfo = {
+					dispatcher: @,
+					event: event
+				}
+				EventDispatcher._bufferedEvents.push(eventInfo)
 			return

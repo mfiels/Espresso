@@ -68,7 +68,7 @@ define 'Block', ['espresso/display/Sprite', 'espresso/display/Stage'], (Sprite, 
 				@y = 0
 				@vy *= -1
 
-			@setZIndex(Math.random())
+			#@setZIndex(Math.random())
 
 			@rotation += 0.1
 

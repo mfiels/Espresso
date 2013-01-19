@@ -92,12 +92,12 @@
 
 
       Stage.prototype._update = function() {
-        var elapsed, event, events, now, _i, _len;
+        var elapsed, event, eventInfo, eventInformation, now, _i, _len;
         requestAnimationFrame(this._update);
-        events = EventDispatcher.readEvents();
-        for (_i = 0, _len = events.length; _i < _len; _i++) {
-          event = events[_i];
-          this.dispatchEvent(event, true);
+        eventInformation = EventDispatcher.readEvents();
+        for (_i = 0, _len = eventInformation.length; _i < _len; _i++) {
+          eventInfo = eventInformation[_i];
+          eventInfo.dispatcher.dispatchEvent(eventInfo.event, true);
         }
         now = new Date().getTime();
         elapsed = now - this._previousTime;

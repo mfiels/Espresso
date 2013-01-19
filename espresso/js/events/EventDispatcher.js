@@ -67,7 +67,7 @@
 
 
       EventDispatcher.prototype.dispatchEvent = function(event, now) {
-        var listener, _i, _len, _ref;
+        var eventInfo, listener, _i, _len, _ref;
         if (now == null) {
           now = false;
         }
@@ -85,7 +85,11 @@
             }
           }
         } else {
-          EventDispatcher._bufferedEvents.push(event);
+          eventInfo = {
+            dispatcher: this,
+            event: event
+          };
+          EventDispatcher._bufferedEvents.push(eventInfo);
         }
       };
 
