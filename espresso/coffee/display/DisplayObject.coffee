@@ -1,4 +1,4 @@
-define ['espresso/events/EventDispatcher'], (EventDispatcher) ->
+define ['espresso/events/EventDispatcher', 'espresso/events/Event'], (EventDispatcher, Event) ->
 	###
 	# A base class for displaying something on the canvas.
 	###
@@ -16,15 +16,25 @@ define ['espresso/events/EventDispatcher'], (EventDispatcher) ->
 			@rotation 	= 0		# The rotation in degrees
 			@scaleX 	= 1 	# The x scaling factor
 			@scaleY 	= 1 	# The y scaling factor
-			
+			@parent		= null	# The DisplayObject which this is added to
+
 			# Private properties
 			@_children 	= []	# The children
+			@_zIndex	= 1 	# The z index; higher overlays lower
 
 		###
 		# Add a child to this DisplayObject's display list.
 		###
 		addChild: (child) ->
-			@_children.push(child)
+			if child.parent
+				child.parent.removeChild(child)
+			child.parent = @
+			@_orderChild(child)
+			child.addEventListener('zIndexChanged', () =>
+				index = @_children.indexOf(child)
+				@_children.splice(index, 1)
+				@_orderChild(child)
+			)
 
 		###
 		# Test to see if a child is in the display list.
@@ -39,8 +49,35 @@ define ['espresso/events/EventDispatcher'], (EventDispatcher) ->
 			index = @_children.indexOf(child)
 			if index isnt -1
 				@_children.splice(index, 1)
+				@parent = null
 				return true
 			return false
+
+		###
+		# Set the zIndex.
+		###
+		setZIndex: (z) ->
+			@_zIndex = z
+			@dispatchEvent(new Event('zIndexChanged'))
+
+		###
+		# Get the zIndex.
+		###
+		getZIndex: () ->
+			return @_zIndex
+
+		###
+		# Given a child insert it in the display list in the right spot.
+		###
+		_orderChild: (child) ->
+			inserted = false
+			for c, i in @_children
+				if child._zIndex < c._zIndex
+					@_children.splice(i, 0, c)
+					inserted = true
+					break
+			if !inserted
+				@_children.push(child)
 
 		###
 		# Transform and render this DisplayObject and all children.

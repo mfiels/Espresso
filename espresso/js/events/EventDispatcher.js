@@ -8,9 +8,25 @@
 
     var EventDispatcher;
     return EventDispatcher = (function() {
+
+      EventDispatcher._bufferedEvents = [];
+
+      /*
+      		# Read all of the buffered events and clear the buffer.
+      */
+
+
+      EventDispatcher.readEvents = function() {
+        var events;
+        events = this._bufferedEvents;
+        this._bufferedEvents = [];
+        return events;
+      };
+
       /*
       		# Construct a new EventDispatcher.
       */
+
 
       function EventDispatcher() {
         this._listeners = {};
@@ -50,19 +66,26 @@
       */
 
 
-      EventDispatcher.prototype.dispatchEvent = function(event) {
+      EventDispatcher.prototype.dispatchEvent = function(event, now) {
         var listener, _i, _len, _ref;
-        if (event.type) {
-          if (this._listeners[event.type]) {
-            _ref = this._listeners[event.type];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-              listener = _ref[_i];
-              listener(event);
-              if (event.cancel) {
-                break;
+        if (now == null) {
+          now = false;
+        }
+        if (now) {
+          if (event.type) {
+            if (this._listeners[event.type]) {
+              _ref = this._listeners[event.type];
+              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                listener = _ref[_i];
+                listener(event);
+                if (event.cancel) {
+                  break;
+                }
               }
             }
           }
+        } else {
+          EventDispatcher._bufferedEvents.push(event);
         }
       };
 

@@ -3,7 +3,7 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(['espresso/events/EventDispatcher'], function(EventDispatcher) {
+  define(['espresso/events/EventDispatcher', 'espresso/events/Event'], function(EventDispatcher, Event) {
     /*
     	# A base class for displaying something on the canvas.
     */
@@ -27,7 +27,9 @@
         this.rotation = 0;
         this.scaleX = 1;
         this.scaleY = 1;
+        this.parent = null;
         this._children = [];
+        this._zIndex = 1;
       }
 
       /*
@@ -36,7 +38,18 @@
 
 
       DisplayObject.prototype.addChild = function(child) {
-        return this._children.push(child);
+        var _this = this;
+        if (child.parent) {
+          child.parent.removeChild(child);
+        }
+        child.parent = this;
+        this._orderChild(child);
+        return child.addEventListener('zIndexChanged', function() {
+          var index;
+          index = _this._children.indexOf(child);
+          _this._children.splice(index, 1);
+          return _this._orderChild(child);
+        });
       };
 
       /*
@@ -58,9 +71,51 @@
         index = this._children.indexOf(child);
         if (index !== -1) {
           this._children.splice(index, 1);
+          this.parent = null;
           return true;
         }
         return false;
+      };
+
+      /*
+      		# Set the zIndex.
+      */
+
+
+      DisplayObject.prototype.setZIndex = function(z) {
+        this._zIndex = z;
+        return this.dispatchEvent(new Event('zIndexChanged'));
+      };
+
+      /*
+      		# Get the zIndex.
+      */
+
+
+      DisplayObject.prototype.getZIndex = function() {
+        return this._zIndex;
+      };
+
+      /*
+      		# Given a child insert it in the display list in the right spot.
+      */
+
+
+      DisplayObject.prototype._orderChild = function(child) {
+        var c, i, inserted, _i, _len, _ref;
+        inserted = false;
+        _ref = this._children;
+        for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+          c = _ref[i];
+          if (child._zIndex < c._zIndex) {
+            this._children.splice(i, 0, c);
+            inserted = true;
+            break;
+          }
+        }
+        if (!inserted) {
+          return this._children.push(child);
+        }
       };
 
       /*

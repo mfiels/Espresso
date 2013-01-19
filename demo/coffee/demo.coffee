@@ -91,7 +91,7 @@ require ['espresso/display/DisplayObject', 'Block', 'espresso/display/Stage', 'e
 		stage.addChild(block)
 
 	# Make a user controlled block
-	player = new Block(0, 0)
+	window.player = player = new Block(0, 0)
 	stage.addChild(player)
 
 	# Update the blocks on each new frame

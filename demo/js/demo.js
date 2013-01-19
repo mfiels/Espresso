@@ -93,7 +93,7 @@
       blocks.push(block);
       stage.addChild(block);
     }
-    player = new Block(0, 0);
+    window.player = player = new Block(0, 0);
     stage.addChild(player);
     return stage.addEventListener('enterFrame', function(e) {
       var _j, _len;

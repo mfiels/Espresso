@@ -1,4 +1,4 @@
-define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'espresso/events/KeyboardEvent', 'espresso/events/MouseEvent', 'espresso/events/Input'], (DisplayObject, EnterFrameEvent, KeyboardEvent, MouseEvent, Input) ->
+define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'espresso/events/KeyboardEvent', 'espresso/events/MouseEvent', 'espresso/events/Input', 'espresso/events/EventDispatcher'], (DisplayObject, EnterFrameEvent, KeyboardEvent, MouseEvent, Input, EventDispatcher) ->
 	###
 	# The top most display object of the application.
 	###
@@ -15,7 +15,6 @@ define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'es
 		constructor: (canvas) ->
 			super(0, 0)
 			@_previousTime = new Date().getTime()
-			@_bufferedEvents = []
 			
 			Stage.canvas = canvas
 			Stage.ctx = canvas.getContext('2d')
@@ -36,31 +35,31 @@ define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'es
 			e = KeyboardEvent.fromDOMEvent(e)
 			Input._keyCodeStates[e.keyCode] = true
 			Input._keyCharStates[e.keyChar] = true
-			@_bufferedEvents.push(e)
+			@dispatchEvent(e)
 
 		_keyup: (e) =>
 			e = KeyboardEvent.fromDOMEvent(e)
 			Input._keyCodeStates[e.keyCode] = false
 			Input._keyCharStates[e.keyChar] = false
-			@_bufferedEvents.push(e)
+			@dispatchEvent(e)
 
 		_mousedown: (e) =>
 			e = MouseEvent.fromDOMEvent(e)
 			Input._mouseButtonCodeStates[e.buttonCode] = true
 			Input._mouseButtonNameStates[e.buttonName] = true
-			@_bufferedEvents.push(e)
+			@dispatchEvent(e)
 
 		_mouseup: (e) =>
 			e = MouseEvent.fromDOMEvent(e)
 			Input._mouseButtonCodeStates[e.buttonCode] = false
 			Input._mouseButtonNameStates[e.buttonName] = false
-			@_bufferedEvents.push(e)
+			@dispatchEvent(e)
 
 		_mousemove: (e) =>
 			e = MouseEvent.fromDOMEvent(e)
 			Input.mouseX = e.x
 			Input.mouseY = e.y
-			@_bufferedEvents.push(e)
+			@dispatchEvent(e)
 
 		###
 		# Internal render loop.
@@ -70,16 +69,16 @@ define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'es
 			requestAnimationFrame(@_update)
 
 			# Dispatch buffered events
-			for event in @_bufferedEvents
-				@dispatchEvent(event)
-			@_bufferedEvents = []
+			events = EventDispatcher.readEvents()
+			for event in events
+				@dispatchEvent(event, true)
 
 			# Dispatch an enterFrame event
 			now = new Date().getTime()
 			elapsed = now - @_previousTime
 			event = new EnterFrameEvent(elapsed)
 			@_previousTime = now
-			@dispatchEvent(event)
+			@dispatchEvent(event, true)
 
 			# Render the canvas
 			Stage.ctx.clearRect(0, 0, Stage.canvas.width, Stage.canvas.height)

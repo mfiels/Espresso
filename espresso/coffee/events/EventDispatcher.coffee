@@ -4,6 +4,16 @@ define ->
 	###
 	class EventDispatcher
 
+		@_bufferedEvents = []
+
+		###
+		# Read all of the buffered events and clear the buffer.
+		###
+		@readEvents = () ->
+			events = @_bufferedEvents
+			@_bufferedEvents = []
+			return events
+
 		###
 		# Construct a new EventDispatcher.
 		###
@@ -32,11 +42,14 @@ define ->
 		###
 		# Notify listeners that an event occured.
 		###
-		dispatchEvent: (event) ->
-			if event.type
-				if @_listeners[event.type]
-					for listener in @_listeners[event.type]
-						listener(event)
-						if event.cancel
-							break
+		dispatchEvent: (event, now=false) ->
+			if now
+				if event.type
+					if @_listeners[event.type]
+						for listener in @_listeners[event.type]
+							listener(event)
+							if event.cancel
+								break
+			else
+				EventDispatcher._bufferedEvents.push(event)
 			return
