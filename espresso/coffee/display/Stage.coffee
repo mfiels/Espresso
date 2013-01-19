@@ -1,4 +1,4 @@
-define ['espresso/display/DisplayObject', 'espresso/events/Event'], (DisplayObject, Event) ->
+define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent'], (DisplayObject, EnterFrameEvent) ->
 	###
 	# The top most display object of the application.
 	###
@@ -14,6 +14,7 @@ define ['espresso/display/DisplayObject', 'espresso/events/Event'], (DisplayObje
 		###
 		constructor: (canvas) ->
 			super(0, 0)
+			@previousTime = new Date().getTime()
 			Stage.canvas = canvas
 			Stage.ctx = canvas.getContext('2d')
 			Stage.stage = @
@@ -27,7 +28,10 @@ define ['espresso/display/DisplayObject', 'espresso/events/Event'], (DisplayObje
 			requestAnimationFrame(@_update)
 
 			# Dispatch an enterFrame event
-			event = new Event('enterFrame');
+			now = new Date().getTime()
+			elapsed = now - @previousTime
+			event = new EnterFrameEvent(elapsed)
+			@previousTime = now
 			@dispatchEvent(event)
 
 			# Render the canvas

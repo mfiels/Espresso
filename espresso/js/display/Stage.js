@@ -4,7 +4,7 @@
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(['espresso/display/DisplayObject', 'espresso/events/Event'], function(DisplayObject, Event) {
+  define(['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent'], function(DisplayObject, EnterFrameEvent) {
     /*
     	# The top most display object of the application.
     */
@@ -28,6 +28,7 @@
       function Stage(canvas) {
         this._update = __bind(this._update, this);
         Stage.__super__.constructor.call(this, 0, 0);
+        this.previousTime = new Date().getTime();
         Stage.canvas = canvas;
         Stage.ctx = canvas.getContext('2d');
         Stage.stage = this;
@@ -40,9 +41,12 @@
 
 
       Stage.prototype._update = function() {
-        var event;
+        var elapsed, event, now;
         requestAnimationFrame(this._update);
-        event = new Event('enterFrame');
+        now = new Date().getTime();
+        elapsed = now - this.previousTime;
+        event = new EnterFrameEvent(elapsed);
+        this.previousTime = now;
         this.dispatchEvent(event);
         Stage.ctx.clearRect(0, 0, Stage.canvas.width, Stage.canvas.height);
         return this.render(Stage.ctx);

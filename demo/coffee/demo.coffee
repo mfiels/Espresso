@@ -46,9 +46,9 @@ define 'Block', ['espresso/display/Sprite', 'espresso/display/Stage'], (Sprite, 
 			@vx = Math.random() * 3 + 1
 			@vy = Math.random() * 3 + 1
 
-		update: () ->
-			@x += @vx
-			@y += @vy
+		update: (e) ->
+			@x += @vx * e.elapsed / 17
+			@y += @vy * e.elapsed / 17
 
 			if @x > Stage.canvas.width - @width
 				@x = Stage.canvas.width - @width
@@ -84,7 +84,7 @@ require ['espresso/display/DisplayObject', 'Block', 'espresso/display/Stage'], (
 		stage.addChild(block)
 
 	# Update the blocks on each new frame
-	stage.addEventListener('enterFrame', () ->
+	stage.addEventListener('enterFrame', (e) ->
 		for block in blocks
-			block.update()
+			block.update(e)
 	)

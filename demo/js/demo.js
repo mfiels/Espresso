@@ -53,9 +53,9 @@
         this.vy = Math.random() * 3 + 1;
       }
 
-      Block.prototype.update = function() {
-        this.x += this.vx;
-        this.y += this.vy;
+      Block.prototype.update = function(e) {
+        this.x += this.vx * e.elapsed / 17;
+        this.y += this.vy * e.elapsed / 17;
         if (this.x > Stage.canvas.width - this.width) {
           this.x = Stage.canvas.width - this.width;
           this.vx *= -1;
@@ -89,12 +89,12 @@
       blocks.push(block);
       stage.addChild(block);
     }
-    return stage.addEventListener('enterFrame', function() {
+    return stage.addEventListener('enterFrame', function(e) {
       var _j, _len, _results;
       _results = [];
       for (_j = 0, _len = blocks.length; _j < _len; _j++) {
         block = blocks[_j];
-        _results.push(block.update());
+        _results.push(block.update(e));
       }
       return _results;
     });
