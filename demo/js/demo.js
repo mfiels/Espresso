@@ -49,13 +49,16 @@
       function Block(x, y) {
         Block.__super__.constructor.call(this, x, y);
         this.setSource('img/block.png');
-        this.vx = Math.random() * 3 + 1;
-        this.vy = Math.random() * 3 + 1;
+        this.vx = (Math.random() * 3 + 1) * (Math.random() > 0.5 ? -1 : 1);
+        this.vy = (Math.random() * 3 + 1) * (Math.random() > 0.5 ? -1 : 1);
+        this.vr = (Math.random() + 0.25) * (Math.random() > 0.5 ? -1 : 1);
+        this.anchorX = this.anchorY = 236 / 2;
       }
 
       Block.prototype.update = function(e) {
         this.x += this.vx * e.elapsed / 17;
         this.y += this.vy * e.elapsed / 17;
+        this.rotation += this.vr;
         if (this.x > Stage.canvas.width - this.width) {
           this.x = Stage.canvas.width - this.width;
           this.vx *= -1;
@@ -65,11 +68,12 @@
         }
         if (this.y > Stage.canvas.height - this.height) {
           this.y = Stage.canvas.height - this.height;
-          return this.vy *= -1;
+          this.vy *= -1;
         } else if (this.y < 0) {
           this.y = 0;
-          return this.vy *= -1;
+          this.vy *= -1;
         }
+        return this.rotation += 0.1;
       };
 
       return Block;
@@ -77,8 +81,8 @@
     })(Sprite);
   });
 
-  require(['espresso/display/DisplayObject', 'Block', 'espresso/display/Stage'], function(DisplayObject, Block, Stage) {
-    var block, blocks, canvas, i, stage, _i;
+  require(['espresso/display/DisplayObject', 'Block', 'espresso/display/Stage', 'espresso/events/Input'], function(DisplayObject, Block, Stage, Input) {
+    var block, blocks, canvas, i, player, stage, _i;
     canvas = document.getElementById('canvas');
     canvas.width = document.width;
     canvas.height = document.height;
@@ -89,14 +93,27 @@
       blocks.push(block);
       stage.addChild(block);
     }
+    player = new Block(0, 0);
+    stage.addChild(player);
     return stage.addEventListener('enterFrame', function(e) {
-      var _j, _len, _results;
-      _results = [];
+      var _j, _len;
       for (_j = 0, _len = blocks.length; _j < _len; _j++) {
         block = blocks[_j];
-        _results.push(block.update(e));
+        block.update(e);
       }
-      return _results;
+      if (Input.isKeyDown('W')) {
+        player.y -= 5 * e.elapsed / 17;
+      }
+      if (Input.isKeyDown('S')) {
+        player.y += 5 * e.elapsed / 17;
+      }
+      if (Input.isKeyDown('D')) {
+        player.x += 5 * e.elapsed / 17;
+      }
+      if (Input.isKeyDown('A')) {
+        player.x -= 5 * e.elapsed / 17;
+      }
+      return player.rotation = Math.atan2(Input.mouseY - player.y, Input.mouseX - player.x) * 180.0 / Math.PI;
     });
   });
 

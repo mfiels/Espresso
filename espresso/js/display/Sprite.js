@@ -38,6 +38,8 @@
           useCache = Sprite.useCache;
         }
         Sprite.__super__.constructor.call(this, x, y);
+        this.anchorX = 0;
+        this.anchorY = 0;
         this.setSource(source, useCache);
       }
 
@@ -101,7 +103,7 @@
 
       Sprite.prototype._draw = function(ctx) {
         if (this.source) {
-          return ctx.drawImage(this.source, 0, 0);
+          return ctx.drawImage(this.source, -this.anchorX, -this.anchorY);
         }
       };
 

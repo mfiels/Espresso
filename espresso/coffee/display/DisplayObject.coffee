@@ -9,7 +9,7 @@ define ['espresso/events/EventDispatcher'], (EventDispatcher) ->
 		###
 		constructor: (@x=0, @y=0) ->
 			super()
-			
+
 			# Public properties
 			@width 		= 0		# The width
 			@height 	= 0		# The height

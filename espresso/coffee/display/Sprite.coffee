@@ -21,6 +21,10 @@ define ['espresso/display/DisplayObject'], (DisplayObject) ->
 		###
 		constructor: (x=0, y=0, source=null, useCache=Sprite.useCache) ->
 			super(x, y)
+
+			@anchorX	= 0		# Center offset
+			@anchorY	= 0		# Center offset
+			
 			@setSource(source, useCache)
 
 		###
@@ -84,4 +88,4 @@ define ['espresso/display/DisplayObject'], (DisplayObject) ->
 		###
 		_draw: (ctx) ->
 			if @source
-				ctx.drawImage(@source, 0, 0)
+				ctx.drawImage(@source, -@anchorX, -@anchorY)
