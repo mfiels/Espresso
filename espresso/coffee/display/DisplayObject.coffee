@@ -21,6 +21,7 @@ define ['espresso/events/EventDispatcher', 'espresso/events/Event'], (EventDispa
 			# Private properties
 			@_children 	= []	# The children
 			@_zIndex	= 1 	# The z index; higher overlays lower
+			@_isDirty	= false	# Whether or not z index needs to be resolved next frame
 
 		###
 		# Add a child to this DisplayObject's display list.
@@ -30,11 +31,6 @@ define ['espresso/events/EventDispatcher', 'espresso/events/Event'], (EventDispa
 				child.parent.removeChild(child)
 			child.parent = @
 			@_orderChild(child)
-			child.addEventListener('zIndexChanged', () =>
-				index = @_children.indexOf(child)
-				@_children.splice(index, 1)
-				@_orderChild(child)
-			)
 
 		###
 		# Test to see if a child is in the display list.
@@ -58,13 +54,26 @@ define ['espresso/events/EventDispatcher', 'espresso/events/Event'], (EventDispa
 		###
 		setZIndex: (z) ->
 			@_zIndex = z
-			@dispatchEvent(new Event('zIndexChanged'))
+			@parent._isDirty = true
 
 		###
 		# Get the zIndex.
 		###
 		getZIndex: () ->
 			return @_zIndex
+
+		###
+		# Called before rendering when the zIndex has been changed.
+		###
+		_sortZIndex: (e) =>
+			@_children.sort((a, b) ->
+				if a._zIndex < b._zIndex
+					return -1
+				else if a._zIndex > b._zIndex
+					return 1
+				return 0
+			)
+			@_isDirty = false
 
 		###
 		# Given a child insert it in the display list in the right spot.
@@ -83,6 +92,8 @@ define ['espresso/events/EventDispatcher', 'espresso/events/Event'], (EventDispa
 		# Transform and render this DisplayObject and all children.
 		###
 		render: (ctx) ->
+			if @_isDirty
+				@_sortZIndex()
 			ctx.save()
 			ctx.translate(@x, @y)
 			ctx.rotate(@rotation * Math.PI / 180.0)

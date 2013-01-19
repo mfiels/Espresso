@@ -68,6 +68,8 @@ define 'Block', ['espresso/display/Sprite', 'espresso/display/Stage'], (Sprite, 
 				@y = 0
 				@vy *= -1
 
+			@setZIndex(Math.random())
+
 			@rotation += 0.1
 
 
@@ -93,7 +95,7 @@ require ['espresso/display/DisplayObject', 'Block', 'espresso/display/Stage', 'e
 	# Make a user controlled block
 	window.player = player = new Block(0, 0)
 	stage.addChild(player)
-
+	
 	# Update the blocks on each new frame
 	stage.addEventListener('enterFrame', (e) ->
 		for block in blocks
