@@ -21,6 +21,7 @@ define ['espresso/events/EventDispatcher', 'espresso/events/Event'], (EventDispa
 			# Private properties
 			@_children 	= []	# The children
 			@_zIndex	= 1 	# The z index; higher overlays lower
+			@_mouseOver = false	# Whether or not the mouse is hovering
 
 		###
 		# Add a child to this DisplayObject's display list.
@@ -75,7 +76,7 @@ define ['espresso/events/EventDispatcher', 'espresso/events/Event'], (EventDispa
 					break
 			if !inserted
 				@_children.push(child)
-
+ 
 		###
 		# Transform and render this DisplayObject and all children.
 		###
@@ -94,3 +95,9 @@ define ['espresso/events/EventDispatcher', 'espresso/events/Event'], (EventDispa
 		###
 		_draw: (ctx) ->
 			return
+
+		###
+		# Check to see if (x, y) is within this diplay object.
+		###
+		containsPoint: (x, y) ->
+			throw 'DisplayObject.containsPoint is not yet implemented'

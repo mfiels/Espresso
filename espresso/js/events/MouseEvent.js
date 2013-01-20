@@ -3,7 +3,7 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(['espresso/events/Event'], function(Event) {
+  define(['espresso/events/Event', 'espresso/display/Stage', 'espresso/events/Input'], function(Event, Stage, Input) {
     /*
     	# A class for mouseUp, mouseDown, and mouseMove events.
     */
@@ -13,13 +13,30 @@
 
       __extends(MouseEvent, _super);
 
+      MouseEvent._domEventMap = {
+        'mousedown': 'mouseDown',
+        'mouseup': 'mouseUp',
+        'mousemove': 'mouseMove',
+        'touchstart': 'mouseDown',
+        'touchend': 'mouseUp',
+        'touchmove': 'mouseMove'
+      };
+
       /*
       		# Create a MouseEvent from a DOM event.
       */
 
 
       MouseEvent.fromDOMEvent = function(e) {
-        return new MouseEvent(e.layerX, e.layerY, e.button, e.button === 0 ? 'left' : e.button === 1 ? 'middle' : e.button === 2 ? 'right' : '', e.type === 'mousedown' ? 'mouseDown' : e.type === 'mouseup' ? 'mouseUp' : e.type === 'mousemove' ? 'mouseMove' : '');
+        var x, y;
+        if (e.targetTouches) {
+          x = e.targetTouches[0].screenX;
+          y = e.targetTouches[0].screenY;
+        } else {
+          x = e.layerX;
+          y = e.layerY;
+        }
+        return new MouseEvent(x, y, e.target, e.button, e.button === 0 ? 'left' : e.button === 1 ? 'middle' : e.button === 2 ? 'right' : '', this._domEventMap[e.type] ? this._domEventMap[e.type] : '');
       };
 
       /*
@@ -27,9 +44,10 @@
       */
 
 
-      function MouseEvent(x, y, buttonCode, buttonName, type) {
+      function MouseEvent(x, y, target, buttonCode, buttonName, type) {
         this.x = x;
         this.y = y;
+        this.target = target;
         this.buttonCode = buttonCode;
         this.buttonName = buttonName;
         MouseEvent.__super__.constructor.call(this, type);

@@ -3,7 +3,7 @@
   var __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(['espresso/display/DisplayObject'], function(DisplayObject) {
+  define(['espresso/display/DisplayObject', 'espresso/utils/Collisions', 'espresso/events/Event'], function(DisplayObject, Collisions, Event) {
     /*
     	# A class for rendering resources.
     */
@@ -49,7 +49,8 @@
 
 
       Sprite.prototype.setSource = function(source, useCache) {
-        var extension, extensionMatch, makeImage, resource;
+        var extension, extensionMatch, makeImage, resource,
+          _this = this;
         if (useCache == null) {
           useCache = Sprite.useCache;
         }
@@ -57,9 +58,19 @@
         makeImage = function(src, container) {
           var image;
           image = new Image();
+          image.listeners = [];
+          image.isLoaded = false;
           image.onload = function() {
+            var listener, listeners, _i, _len, _ref;
             container.width = this.width;
-            return container.height = this.height;
+            container.height = this.height;
+            _ref = this.listeners;
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              listener = _ref[_i];
+              listener(this);
+            }
+            listeners = [];
+            return this.isLoaded = true;
           };
           image.src = src;
           return image;
@@ -76,6 +87,12 @@
                 if (useCache) {
                   if (Sprite._cache[resource]) {
                     this.source = Sprite._cache[resource];
+                    if (!this.source.isLoaded) {
+                      this.source.listeners.push(function() {
+                        _this.width = _this.source.width;
+                        return _this.height = _this.source.height;
+                      });
+                    }
                     this.width = this.source.width;
                     this.height = this.source.height;
                   } else {
@@ -105,6 +122,25 @@
         if (this.source) {
           return ctx.drawImage(this.source, -this.anchorX, -this.anchorY);
         }
+      };
+
+      /*
+      		# Test to see if (x, y) is in the Sprite.
+      */
+
+
+      Sprite.prototype.containsPoint = function(x, y) {
+        var rectangle;
+        rectangle = {
+          centerX: this.x,
+          centerY: this.y,
+          x: this.x - this.anchorX,
+          y: this.y - this.anchorY,
+          width: this.width,
+          height: this.height,
+          angle: this.rotation
+        };
+        return Collisions.rectangleContainsPoint(rectangle, x, y);
       };
 
       return Sprite;

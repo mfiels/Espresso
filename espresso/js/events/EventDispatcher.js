@@ -11,6 +11,12 @@
 
       EventDispatcher._bufferedEvents = [];
 
+      EventDispatcher._mouseTargets = [];
+
+      EventDispatcher._mouseTargetCount = {};
+
+      EventDispatcher._mouseEvents = ['mouseOver', 'mouseOff', 'mouseUp', 'mouseDown'];
+
       /*
       		# Read all of the buffered events and clear the buffer.
       */
@@ -41,6 +47,15 @@
         if (!this._listeners[type]) {
           this._listeners[type] = [];
         }
+        if (this.constructor.name !== 'Stage' && EventDispatcher._mouseEvents.indexOf(type) !== -1) {
+          if (EventDispatcher._mouseTargetCount[this] === void 0) {
+            EventDispatcher._mouseTargetCount[this] = 0;
+          }
+          EventDispatcher._mouseTargetCount[this]++;
+          if (EventDispatcher._mouseTargets.indexOf(this) === -1) {
+            EventDispatcher._mouseTargets.push(this);
+          }
+        }
         return this._listeners[type].push(listener);
       };
 
@@ -50,11 +65,18 @@
 
 
       EventDispatcher.prototype.removeEventListener = function(type, listener) {
-        var index;
+        var index, targetIndex;
         if (this._listeners[type]) {
           index = this._listeners[type].indexOf(listener);
           if (index !== -1) {
             this._listeners.splice(index, 1);
+            if (this.constructor.name !== 'Stage' && EventDispatcher._mouseEvents.indexOf(type) !== -1) {
+              EventDispatcher._mouseTargetCount[this]--;
+              if (EventDispatcher._mouseTargetCount[this] === 0) {
+                targetIndex = EventDispatcher._mouseTargets.indexOf(this);
+                EventDispatcher._mouseTargets.splice(targetIndex, 1);
+              }
+            }
             return true;
           }
         }

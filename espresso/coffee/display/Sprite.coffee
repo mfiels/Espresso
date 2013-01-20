@@ -1,4 +1,4 @@
-define ['espresso/display/DisplayObject'], (DisplayObject) ->
+define ['espresso/display/DisplayObject', 'espresso/utils/Collisions', 'espresso/events/Event'], (DisplayObject, Collisions, Event) ->
 	###
 	# A class for rendering resources.
 	###
@@ -37,9 +37,15 @@ define ['espresso/display/DisplayObject'], (DisplayObject) ->
 			# Internal function for making Image objects
 			makeImage = (src, container) ->
 				image = new Image()
+				image.listeners = []
+				image.isLoaded = false
 				image.onload = () ->
 					container.width = @width
 					container.height = @height
+					for listener in @listeners
+						listener(@)
+					listeners = []
+					@isLoaded = true
 				image.src = src
 				return image
 
@@ -66,6 +72,11 @@ define ['espresso/display/DisplayObject'], (DisplayObject) ->
 								# If it is in the cache
 								if Sprite._cache[resource]
 									@source = Sprite._cache[resource]
+									if !@source.isLoaded
+										@source.listeners.push(() =>
+											@width = @source.width
+											@height = @source.height
+										)
 									@width = @source.width
 									@height = @source.height
 								# It is not in the cache
@@ -89,3 +100,18 @@ define ['espresso/display/DisplayObject'], (DisplayObject) ->
 		_draw: (ctx) ->
 			if @source
 				ctx.drawImage(@source, -@anchorX, -@anchorY)
+
+		###
+		# Test to see if (x, y) is in the Sprite.
+		###
+		containsPoint: (x, y) ->
+			rectangle = {
+				centerX: @x,
+				centerY: @y,
+				x: @x - @anchorX,
+				y: @y - @anchorY,
+				width: @width,
+				height: @height,
+				angle: @rotation
+			}
+			return Collisions.rectangleContainsPoint(rectangle, x, y)

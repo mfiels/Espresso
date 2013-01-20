@@ -46,10 +46,16 @@ define 'Block', ['espresso/display/Sprite', 'espresso/display/Stage'], (Sprite, 
 			@vx = (Math.random() * 3 + 1) * (if Math.random() > 0.5 then -1 else 1)
 			@vy = (Math.random() * 3 + 1) * (if Math.random() > 0.5 then -1 else 1)
 			@vr = (Math.random() + 0.25) * (if Math.random() > 0.5 then -1 else 1)
-			
+			@paused = false
 			@anchorX = @anchorY = 236/2
 
+		clicked: () ->
+			@paused = !@paused
+
 		update: (e) ->
+			if @paused
+				return
+
 			@x += @vx * e.elapsed / 17
 			@y += @vy * e.elapsed / 17
 
@@ -79,32 +85,41 @@ require ['espresso/display/DisplayObject', 'Block', 'espresso/display/Stage', 'e
 	canvas = document.getElementById('canvas')
 
 	# Set the canvas size
-	canvas.width = document.width
-	canvas.height = document.height
+	canvas.width = document.width || window.screen.width
+	canvas.height = document.height || window.screen.height
 
 	# Create the stage
 	stage = new Stage(canvas)
 
 	# Make some random blocks
-	blocks = []
-	for i in [0...25]
+	window.blocks = blocks = []
+	for i in [0..5]
 		block = new Block(Math.random() * (canvas.width - 236), Math.random() * (canvas.height - 236))
+		block.addEventListener('mouseDown', (e) ->
+			e.target.clicked()
+		)
 		blocks.push(block)
 		stage.addChild(block)
 
 	# Make a user controlled block
-	window.player = player = new Block(0, 0)
-	stage.addChild(player)
+	# window.player = player = new Block(0, 0)
+	# stage.addChild(player)
+
+	# stage.addEventListener('mouseUp', (e) ->
+	# 	for block in blocks
+	# 		if block.containsPoint(e.x, e.y)
+	# 			block.clicked()
+	# )
 
 	# Update the blocks on each new frame
 	stage.addEventListener('enterFrame', (e) ->
 		for block in blocks
 			block.update(e)
 		
-		if Input.isKeyDown('W') then player.y -= 5 * e.elapsed / 17
-		if Input.isKeyDown('S') then player.y += 5 * e.elapsed / 17
-		if Input.isKeyDown('D') then player.x += 5 * e.elapsed / 17
-		if Input.isKeyDown('A') then player.x -= 5 * e.elapsed / 17
+		# if Input.isKeyDown('W') then player.y -= 5 * e.elapsed / 17
+		# if Input.isKeyDown('S') then player.y += 5 * e.elapsed / 17
+		# if Input.isKeyDown('D') then player.x += 5 * e.elapsed / 17
+		# if Input.isKeyDown('A') then player.x -= 5 * e.elapsed / 17
 
-		player.rotation = Math.atan2(Input.mouseY - player.y, Input.mouseX - player.x) * 180.0 / Math.PI
+		# player.rotation = Math.atan2(Input.mouseY - player.y, Input.mouseX - player.x) * 180.0 / Math.PI
 	)

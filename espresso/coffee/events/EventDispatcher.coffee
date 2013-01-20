@@ -5,6 +5,13 @@ define ->
 	class EventDispatcher
 
 		@_bufferedEvents = []
+		@_mouseTargets = []
+		@_mouseTargetCount = {}
+
+		@_mouseEvents = [
+			'mouseOver', 'mouseOff', 
+			'mouseUp', 'mouseDown'
+		]
 
 		###
 		# Read all of the buffered events and clear the buffer.
@@ -26,6 +33,14 @@ define ->
 		addEventListener: (type, listener) ->
 			if !@_listeners[type]
 				@_listeners[type] = []
+
+			if @.constructor.name isnt 'Stage' and EventDispatcher._mouseEvents.indexOf(type) isnt -1
+				if EventDispatcher._mouseTargetCount[@] is undefined
+					EventDispatcher._mouseTargetCount[@] = 0
+				EventDispatcher._mouseTargetCount[@]++
+				if EventDispatcher._mouseTargets.indexOf(@) is -1
+					EventDispatcher._mouseTargets.push(@)
+
 			@_listeners[type].push(listener)
 
 		###
@@ -36,6 +51,13 @@ define ->
 				index = @_listeners[type].indexOf(listener)
 				if index isnt -1
 					@_listeners.splice(index, 1)
+
+					if @.constructor.name isnt 'Stage' and EventDispatcher._mouseEvents.indexOf(type) isnt -1
+						EventDispatcher._mouseTargetCount[@]--
+						if EventDispatcher._mouseTargetCount[@] == 0
+							targetIndex = EventDispatcher._mouseTargets.indexOf(@)
+							EventDispatcher._mouseTargets.splice(targetIndex, 1)
+
 					return true
 			return false
 

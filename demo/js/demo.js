@@ -52,10 +52,18 @@
         this.vx = (Math.random() * 3 + 1) * (Math.random() > 0.5 ? -1 : 1);
         this.vy = (Math.random() * 3 + 1) * (Math.random() > 0.5 ? -1 : 1);
         this.vr = (Math.random() + 0.25) * (Math.random() > 0.5 ? -1 : 1);
+        this.paused = false;
         this.anchorX = this.anchorY = 236 / 2;
       }
 
+      Block.prototype.clicked = function() {
+        return this.paused = !this.paused;
+      };
+
       Block.prototype.update = function(e) {
+        if (this.paused) {
+          return;
+        }
         this.x += this.vx * e.elapsed / 17;
         this.y += this.vy * e.elapsed / 17;
         this.rotation += this.vr;
@@ -82,38 +90,28 @@
   });
 
   require(['espresso/display/DisplayObject', 'Block', 'espresso/display/Stage', 'espresso/events/Input'], function(DisplayObject, Block, Stage, Input) {
-    var block, blocks, canvas, i, player, stage, _i;
+    var block, blocks, canvas, i, stage, _i;
     canvas = document.getElementById('canvas');
-    canvas.width = document.width;
-    canvas.height = document.height;
+    canvas.width = document.width || window.screen.width;
+    canvas.height = document.height || window.screen.height;
     stage = new Stage(canvas);
-    blocks = [];
-    for (i = _i = 0; _i < 25; i = ++_i) {
+    window.blocks = blocks = [];
+    for (i = _i = 0; _i <= 5; i = ++_i) {
       block = new Block(Math.random() * (canvas.width - 236), Math.random() * (canvas.height - 236));
+      block.addEventListener('mouseDown', function(e) {
+        return e.target.clicked();
+      });
       blocks.push(block);
       stage.addChild(block);
     }
-    window.player = player = new Block(0, 0);
-    stage.addChild(player);
     return stage.addEventListener('enterFrame', function(e) {
-      var _j, _len;
+      var _j, _len, _results;
+      _results = [];
       for (_j = 0, _len = blocks.length; _j < _len; _j++) {
         block = blocks[_j];
-        block.update(e);
+        _results.push(block.update(e));
       }
-      if (Input.isKeyDown('W')) {
-        player.y -= 5 * e.elapsed / 17;
-      }
-      if (Input.isKeyDown('S')) {
-        player.y += 5 * e.elapsed / 17;
-      }
-      if (Input.isKeyDown('D')) {
-        player.x += 5 * e.elapsed / 17;
-      }
-      if (Input.isKeyDown('A')) {
-        player.x -= 5 * e.elapsed / 17;
-      }
-      return player.rotation = Math.atan2(Input.mouseY - player.y, Input.mouseX - player.x) * 180.0 / Math.PI;
+      return _results;
     });
   });
 

@@ -20,6 +20,8 @@
 
       Stage.ctx = null;
 
+      Stage.touch = false;
+
       /*
       		# Construct a stage given an instance of the canvas.
       */
@@ -28,62 +30,106 @@
       function Stage(canvas) {
         this._update = __bind(this._update, this);
 
-        this._mousemove = __bind(this._mousemove, this);
+        this._mouseUp = __bind(this._mouseUp, this);
 
-        this._mouseup = __bind(this._mouseup, this);
+        this._mouseDown = __bind(this._mouseDown, this);
 
-        this._mousedown = __bind(this._mousedown, this);
+        this._domMousemove = __bind(this._domMousemove, this);
 
-        this._keyup = __bind(this._keyup, this);
+        this._domMouseup = __bind(this._domMouseup, this);
 
-        this._keydown = __bind(this._keydown, this);
+        this._domMousedown = __bind(this._domMousedown, this);
+
+        this._domKeyup = __bind(this._domKeyup, this);
+
+        this._domKeydown = __bind(this._domKeydown, this);
         Stage.__super__.constructor.call(this, 0, 0);
         this._previousTime = new Date().getTime();
         Stage.canvas = canvas;
         Stage.ctx = canvas.getContext('2d');
         Stage.stage = this;
-        canvas.onkeydown = this._keydown;
-        canvas.onkeyup = this._keyup;
-        canvas.onmousedown = this._mousedown;
-        canvas.onmouseup = this._mouseup;
-        canvas.onmousemove = this._mousemove;
+        canvas.addEventListener('keydown', this._domKeydown, false);
+        canvas.addEventListener('keyup', this._domKeyup, false);
+        if ('ontouchstart' in document.documentElement) {
+          canvas.addEventListener('touchstart', this._domMousedown, false);
+          canvas.addEventListener('touchmove', this._domMousemove, false);
+          Stage.touch = true;
+        } else {
+          canvas.addEventListener('mousedown', this._domMousedown, false);
+          canvas.addEventListener('mouseup', this._domMousedown, false);
+          canvas.addEventListener('mousemove', this._domMousemove, false);
+        }
         canvas.tabIndex = '1';
+        this.addEventListener('mouseDown', this._mouseDown);
+        this.addEventListener('mouseUp', this._mouseUp);
         this._update();
       }
 
-      Stage.prototype._keydown = function(e) {
+      Stage.prototype._domKeydown = function(e) {
         e = KeyboardEvent.fromDOMEvent(e);
         Input._keyCodeStates[e.keyCode] = true;
         Input._keyCharStates[e.keyChar] = true;
         return this.dispatchEvent(e);
       };
 
-      Stage.prototype._keyup = function(e) {
+      Stage.prototype._domKeyup = function(e) {
         e = KeyboardEvent.fromDOMEvent(e);
         Input._keyCodeStates[e.keyCode] = false;
         Input._keyCharStates[e.keyChar] = false;
         return this.dispatchEvent(e);
       };
 
-      Stage.prototype._mousedown = function(e) {
+      Stage.prototype._domMousedown = function(e) {
         e = MouseEvent.fromDOMEvent(e);
         Input._mouseButtonCodeStates[e.buttonCode] = true;
         Input._mouseButtonNameStates[e.buttonName] = true;
         return this.dispatchEvent(e);
       };
 
-      Stage.prototype._mouseup = function(e) {
+      Stage.prototype._domMouseup = function(e) {
         e = MouseEvent.fromDOMEvent(e);
         Input._mouseButtonCodeStates[e.buttonCode] = false;
         Input._mouseButtonNameStates[e.buttonName] = false;
         return this.dispatchEvent(e);
       };
 
-      Stage.prototype._mousemove = function(e) {
+      Stage.prototype._domMousemove = function(e) {
         e = MouseEvent.fromDOMEvent(e);
         Input.mouseX = e.x;
         Input.mouseY = e.y;
         return this.dispatchEvent(e);
+      };
+
+      Stage.prototype._mouseDown = function(e) {
+        var mouseTarget, mouseTargets, _i, _len, _results;
+        mouseTargets = EventDispatcher._mouseTargets;
+        _results = [];
+        for (_i = 0, _len = mouseTargets.length; _i < _len; _i++) {
+          mouseTarget = mouseTargets[_i];
+          if (mouseTarget._mouseOver) {
+            e.target = mouseTarget;
+            _results.push(mouseTarget.dispatchEvent(e, true));
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      };
+
+      Stage.prototype._mouseUp = function(e) {
+        var mouseTarget, mouseTargets, _i, _len, _results;
+        mouseTargets = EventDispatcher._mouseTargets;
+        _results = [];
+        for (_i = 0, _len = mouseTargets.length; _i < _len; _i++) {
+          mouseTarget = mouseTargets[_i];
+          if (mouseTarget._mouseOver) {
+            e.target = mouseTarget;
+            _results.push(mouseTarget.dispatchEvent(e, true));
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
       };
 
       /*
@@ -92,18 +138,33 @@
 
 
       Stage.prototype._update = function() {
-        var elapsed, event, eventInfo, eventInformation, now, _i, _len;
+        var elapsed, event, eventInfo, eventInformation, mouseTarget, mouseTargets, now, _i, _j, _len, _len1;
         requestAnimationFrame(this._update);
-        eventInformation = EventDispatcher.readEvents();
-        for (_i = 0, _len = eventInformation.length; _i < _len; _i++) {
-          eventInfo = eventInformation[_i];
-          eventInfo.dispatcher.dispatchEvent(eventInfo.event, true);
+        mouseTargets = EventDispatcher._mouseTargets;
+        for (_i = 0, _len = mouseTargets.length; _i < _len; _i++) {
+          mouseTarget = mouseTargets[_i];
+          if (mouseTarget.containsPoint(Input.mouseX, Input.mouseY)) {
+            if (!mouseTarget._mouseOver) {
+              mouseTarget._mouseOver = true;
+              mouseTarget.dispatchEvent(new MouseEvent(Input.mouseX, Input.mouseY, mouseTarget, 0, '', 'mouseOver'));
+            }
+          } else {
+            if (mouseTarget._mouseOver) {
+              mouseTarget._mouseOver = false;
+              mouseTarget.dispatchEvent(new MouseEvent(Input.mouseX, Input.mouseY, mouseTarget, 0, '', 'mouseOff'));
+            }
+          }
         }
         now = new Date().getTime();
         elapsed = now - this._previousTime;
         event = new EnterFrameEvent(elapsed);
         this._previousTime = now;
         this.dispatchEvent(event, true);
+        eventInformation = EventDispatcher.readEvents();
+        for (_j = 0, _len1 = eventInformation.length; _j < _len1; _j++) {
+          eventInfo = eventInformation[_j];
+          eventInfo.dispatcher.dispatchEvent(eventInfo.event, true);
+        }
         Stage.ctx.clearRect(0, 0, Stage.canvas.width, Stage.canvas.height);
         return this.render(Stage.ctx);
       };

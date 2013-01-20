@@ -30,6 +30,7 @@
         this.parent = null;
         this._children = [];
         this._zIndex = 1;
+        this._mouseOver = false;
       }
 
       /*
@@ -140,6 +141,15 @@
 
 
       DisplayObject.prototype._draw = function(ctx) {};
+
+      /*
+      		# Check to see if (x, y) is within this diplay object.
+      */
+
+
+      DisplayObject.prototype.containsPoint = function(x, y) {
+        throw 'DisplayObject.containsPoint is not yet implemented';
+      };
 
       return DisplayObject;
 
