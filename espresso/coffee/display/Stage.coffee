@@ -1,4 +1,4 @@
-define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'espresso/events/KeyboardEvent', 'espresso/events/MouseEvent', 'espresso/events/Input', 'espresso/events/EventDispatcher'], (DisplayObject, EnterFrameEvent, KeyboardEvent, MouseEvent, Input, EventDispatcher) ->
+define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'espresso/events/KeyboardEvent', 'espresso/events/MouseEvent', 'espresso/events/Input', 'espresso/events/EventDispatcher', 'espresso/utils/Augmentations'], (DisplayObject, EnterFrameEvent, KeyboardEvent, MouseEvent, Input, EventDispatcher, Augmentations) ->
 	###
 	# The top most display object of the application.
 	###
@@ -26,7 +26,7 @@ define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'es
 
 			if `'ontouchstart' in document.documentElement`
 				canvas.addEventListener('touchstart', @_domMousedown, false)
-				# canvas.addEventListener('touchend', @_domMouseup, false)
+				canvas.addEventListener('touchend', @_domMouseup, false)
 				canvas.addEventListener('touchmove', @_domMousemove, false)
 				Stage.touch = true
 			else
@@ -54,24 +54,33 @@ define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'es
 			@dispatchEvent(e)
 
 		_domMousedown: (e) =>
-			e = MouseEvent.fromDOMEvent(e)
+			e.preventDefault()
+			e = MouseEvent.fromDOMEvent(e, Input)
 			Input._mouseButtonCodeStates[e.buttonCode] = true
 			Input._mouseButtonNameStates[e.buttonName] = true
+			Input.mouseX = e.x
+			Input.mouseY = e.y
 			@dispatchEvent(e)
 
 		_domMouseup: (e) =>
-			e = MouseEvent.fromDOMEvent(e)
+			e.preventDefault()
+			e = MouseEvent.fromDOMEvent(e, Input)
 			Input._mouseButtonCodeStates[e.buttonCode] = false
 			Input._mouseButtonNameStates[e.buttonName] = false
 			@dispatchEvent(e)
 
 		_domMousemove: (e) =>
-			e = MouseEvent.fromDOMEvent(e)
+			e.preventDefault()
+			e = MouseEvent.fromDOMEvent(e, Input)
 			Input.mouseX = e.x
 			Input.mouseY = e.y
+			console.log('move')
+			console.log(e)
 			@dispatchEvent(e)
 
 		_mouseDown: (e) =>
+			console.log('down')
+			console.log(e)
 			mouseTargets = EventDispatcher._mouseTargets
 			for mouseTarget in mouseTargets
 				if mouseTarget._mouseOver
@@ -79,6 +88,8 @@ define ['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'es
 					mouseTarget.dispatchEvent(e, true)
 
 		_mouseUp: (e) =>
+			console.log('up')
+			console.log(e)
 			mouseTargets = EventDispatcher._mouseTargets
 			for mouseTarget in mouseTargets
 				if mouseTarget._mouseOver

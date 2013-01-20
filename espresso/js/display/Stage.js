@@ -4,7 +4,7 @@
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  define(['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'espresso/events/KeyboardEvent', 'espresso/events/MouseEvent', 'espresso/events/Input', 'espresso/events/EventDispatcher'], function(DisplayObject, EnterFrameEvent, KeyboardEvent, MouseEvent, Input, EventDispatcher) {
+  define(['espresso/display/DisplayObject', 'espresso/events/EnterFrameEvent', 'espresso/events/KeyboardEvent', 'espresso/events/MouseEvent', 'espresso/events/Input', 'espresso/events/EventDispatcher', 'espresso/utils/Augmentations'], function(DisplayObject, EnterFrameEvent, KeyboardEvent, MouseEvent, Input, EventDispatcher, Augmentations) {
     /*
     	# The top most display object of the application.
     */
@@ -52,6 +52,7 @@
         canvas.addEventListener('keyup', this._domKeyup, false);
         if ('ontouchstart' in document.documentElement) {
           canvas.addEventListener('touchstart', this._domMousedown, false);
+          canvas.addEventListener('touchend', this._domMouseup, false);
           canvas.addEventListener('touchmove', this._domMousemove, false);
           Stage.touch = true;
         } else {
@@ -80,28 +81,37 @@
       };
 
       Stage.prototype._domMousedown = function(e) {
-        e = MouseEvent.fromDOMEvent(e);
+        e.preventDefault();
+        e = MouseEvent.fromDOMEvent(e, Input);
         Input._mouseButtonCodeStates[e.buttonCode] = true;
         Input._mouseButtonNameStates[e.buttonName] = true;
+        Input.mouseX = e.x;
+        Input.mouseY = e.y;
         return this.dispatchEvent(e);
       };
 
       Stage.prototype._domMouseup = function(e) {
-        e = MouseEvent.fromDOMEvent(e);
+        e.preventDefault();
+        e = MouseEvent.fromDOMEvent(e, Input);
         Input._mouseButtonCodeStates[e.buttonCode] = false;
         Input._mouseButtonNameStates[e.buttonName] = false;
         return this.dispatchEvent(e);
       };
 
       Stage.prototype._domMousemove = function(e) {
-        e = MouseEvent.fromDOMEvent(e);
+        e.preventDefault();
+        e = MouseEvent.fromDOMEvent(e, Input);
         Input.mouseX = e.x;
         Input.mouseY = e.y;
+        console.log('move');
+        console.log(e);
         return this.dispatchEvent(e);
       };
 
       Stage.prototype._mouseDown = function(e) {
         var mouseTarget, mouseTargets, _i, _len, _results;
+        console.log('down');
+        console.log(e);
         mouseTargets = EventDispatcher._mouseTargets;
         _results = [];
         for (_i = 0, _len = mouseTargets.length; _i < _len; _i++) {
@@ -118,6 +128,8 @@
 
       Stage.prototype._mouseUp = function(e) {
         var mouseTarget, mouseTargets, _i, _len, _results;
+        console.log('up');
+        console.log(e);
         mouseTargets = EventDispatcher._mouseTargets;
         _results = [];
         for (_i = 0, _len = mouseTargets.length; _i < _len; _i++) {

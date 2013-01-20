@@ -27,11 +27,16 @@
       */
 
 
-      MouseEvent.fromDOMEvent = function(e) {
+      MouseEvent.fromDOMEvent = function(e, Input) {
         var x, y;
         if (e.targetTouches) {
-          x = e.targetTouches[0].screenX;
-          y = e.targetTouches[0].screenY;
+          if (e.targetTouches.length !== 0) {
+            x = e.targetTouches[0].clientX;
+            y = e.targetTouches[0].clientY;
+          } else {
+            x = Input.mouseX;
+            y = Input.mouseY;
+          }
         } else {
           x = e.layerX;
           y = e.layerY;

@@ -16,10 +16,14 @@ define ['espresso/events/Event', 'espresso/display/Stage', 'espresso/events/Inpu
 		###
 		# Create a MouseEvent from a DOM event.
 		###
-		@fromDOMEvent = (e) ->
+		@fromDOMEvent = (e, Input) ->
 			if e.targetTouches
-				x = e.targetTouches[0].screenX
-				y = e.targetTouches[0].screenY
+				if e.targetTouches.length isnt 0
+					x = e.targetTouches[0].clientX
+					y = e.targetTouches[0].clientY
+				else
+					x = Input.mouseX
+					y = Input.mouseY
 			else
 				x = e.layerX
 				y = e.layerY
